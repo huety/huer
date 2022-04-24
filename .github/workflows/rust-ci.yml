@@ -9,12 +9,13 @@ on:
 
 env:
     CARGO_TERM_COLOR: always
+    RUSTFLAGS: -D warnings
 
 jobs:
     build:
         strategy:
             matrix:
-                os: [windows-latest, ubuntu-latest, macos-latest]
+                os: [ubuntu-latest]
                 toolchain: [nightly]
                 mode: [release, debug]
         name: cargo-build ${{ matrix.os }}-${{ matrix.toolchain}} ${{ matrix.mode }}
@@ -38,38 +39,38 @@ jobs:
                   command: build
                   args: ${{ env.MODE }} --verbose
     doc:
-      strategy:
-        matrix:
-          os: [windows-latest, ubuntu-latest, macos-latest]
-          toolchain: [nightly]
-          mode: [release, debug]
-      name: cargo-doc ${{ matrix.os }}-${{ matrix.toolchain }} ${{ matrix.mode }}
-      runs-on: ${{ matrix.os }}
-      steps:
-        - uses: actions/checkout@v2
-        
-        - name: set compile mode
-          shell: bash
-          run: |
+        strategy:
+            matrix:
+                os: [ubuntu-latest]
+                toolchain: [nightly]
+                mode: [release, debug]
+        name: cargo-doc ${{ matrix.os }}-${{ matrix.toolchain }} ${{ matrix.mode }}
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: set compile mode
+              shell: bash
+              run: |
                   if [ ${{ matrix.mode }} = "release" ] ; then
                     echo "MODE=--release" >> $GITHUB_ENV
                   fi
-        - uses: actions-rs/toolchain@v1
-          with:
-            profile: minimal
-            toolchain: ${{ matrix.toolchain }}
-            override: true
-        - uses: actions-rs/cargo@v1
-          with:
-            command: doc
-            args: ${{ env.MODE }} --verbose
+            - uses: actions-rs/toolchain@v1
+              with:
+                  profile: minimal
+                  toolchain: ${{ matrix.toolchain }}
+                  override: true
+            - uses: actions-rs/cargo@v1
+              with:
+                  command: doc
+                  args: ${{ env.MODE }} --verbose
     test:
         strategy:
             matrix:
-                os: [windows-latest, ubuntu-latest, macos-latest]
+                os: [ubuntu-latest]
                 toolchain: [nightly]
                 mode: [release, debug]
-        name: cargo-test ${{ matrix.os }}-${{ matrix.toolchain}}
+        name: cargo-test ${{ matrix.os }}-${{ matrix.toolchain}} ${{ matrix.mode }}
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v2
@@ -84,7 +85,6 @@ jobs:
               with:
                   command: test
                   args: ${{ env.MODE }} --verbose
-    # cargo-fmt is platform independent, so no matrix is needed
     fmt:
         name: cargo-fmt
         runs-on: ubuntu-latest
@@ -104,12 +104,12 @@ jobs:
                   args: --all --verbose -- --check
     clippy:
         strategy:
-          matrix:
-            os: [ubuntu-latest, windows-latest, macos-latest]
-            toolchain: [nightly]
-            mode: [release, debug]
+            matrix:
+                os: [ubuntu-latest]
+                toolchain: [nightly]
+                mode: [release, debug]
         name: cargo-clippy
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v2
 
